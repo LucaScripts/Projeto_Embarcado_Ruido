@@ -17,6 +17,7 @@ const uint MIC_ADC = 28;
 const uint NUM_AMOSTRAS = 100;
 
 uint16_t ruido_base = 0; // Valor base do ruído ambiente
+bool buzzer_ligado = false; // Estado do buzzer
 
 void debounce_delay()
 {
@@ -98,12 +99,25 @@ int main()
         if (!gpio_get(BUTTON_A))
         {
             debounce_delay();  // Chama o debounce para evitar múltiplos registros rápidos
-            printf("[BOTÃO A] Pressionado! Emitindo som no buzzer.\n");
-            emitir_som_buzzer(BUZZER_A); // Emite som no buzzer A
-            emitir_som_buzzer(BUZZER_B); // Emite som no buzzer B
-            sleep_ms(100);               // Espera 100ms antes de parar o som
-            parar_som_buzzer(BUZZER_A);  // Para o som do buzzer A
-            parar_som_buzzer(BUZZER_B);  // Para o som do buzzer B
+            if (!buzzer_ligado)
+            {
+                printf("[BOTÃO A] Pressionado! Emitindo som no buzzer.\n");
+                emitir_som_buzzer(BUZZER_A); // Emite som no buzzer A
+                emitir_som_buzzer(BUZZER_B); // Emite som no buzzer B
+                buzzer_ligado = true; // Atualiza o estado do buzzer
+            }
+            else
+            {
+                printf("[BOTÃO A] Pressionado! Parando som no buzzer.\n");
+                parar_som_buzzer(BUZZER_A);  // Para o som do buzzer A
+                parar_som_buzzer(BUZZER_B);  // Para o som do buzzer B
+                buzzer_ligado = false; // Atualiza o estado do buzzer
+            }
+            // Espera até que o botão seja liberado
+            while (!gpio_get(BUTTON_A))
+            {
+                sleep_ms(10);
+            }
         }
 
         // Verifica se o botão B foi pressionado para entrar em modo BOOTSEL
