@@ -17,6 +17,7 @@ ssd1306_t oled;
 
 const uint LED_RED = 13;
 const uint LED_BLUE = 12;
+const uint LED_GREEN = 14; // LED Verde
 const uint MIC_ADC = 28;
 const uint NUM_AMOSTRAS = 100;
 
@@ -78,6 +79,8 @@ int main()
     gpio_set_dir(LED_RED, GPIO_OUT);
     gpio_init(LED_BLUE);
     gpio_set_dir(LED_BLUE, GPIO_OUT);
+    gpio_init(LED_GREEN); // Inicializa o LED verde
+    gpio_set_dir(LED_GREEN, GPIO_OUT);
 
     // Inicializa o ADC
     adc_init();
@@ -93,6 +96,9 @@ int main()
     // Define os limiares com base na calibração
     uint16_t limiar_1 = ruido_base + 100; // Ativa LED azul
     uint16_t limiar_2 = ruido_base + 300; // Ativa LED vermelho
+
+    bool led_blue_state = false; // Estado do LED azul
+    uint32_t last_toggle_time = 0; // Tempo do último toggle do LED azul
 
     while (true)
     {
@@ -114,16 +120,36 @@ int main()
         {
             gpio_put(LED_BLUE, true); // Liga LED azul
             gpio_put(LED_RED, false);
+            gpio_put(LED_GREEN, false); // Apaga o LED verde
         }
         else if (mic_value >= limiar_2)
         {
             gpio_put(LED_BLUE, false);
             gpio_put(LED_RED, true); // Liga LED vermelho
+            gpio_put(LED_GREEN, false); // Apaga o LED verde
         }
         else
         {
-            gpio_put(LED_BLUE, false);
-            gpio_put(LED_RED, false); // Ambos apagados
+            gpio_put(LED_BLUE, false); // Apaga o LED azul
+            gpio_put(LED_RED, false); // Apaga o LED vermelho
+            gpio_put(LED_GREEN, true); // Liga o LED verde, indicando que está quieto
+        }
+
+        // Controle de piscagem do LED azul com base no ruído
+        if (mic_value > ruido_base && mic_value < limiar_1) // Apenas pisca se houver algum ruído detectado
+        {
+            uint32_t current_time = time_us_32();
+                
+            // Mapeia o valor do ruído para um intervalo de piscagem de 0.5 a 1.5s
+            uint32_t blink_interval = 1500000 - ((mic_value - ruido_base) * 1000000) / limiar_1;
+
+            // Controla o piscar do LED azul
+            if (current_time - last_toggle_time > blink_interval)
+            {
+                led_blue_state = !led_blue_state; // Alterna o estado do LED azul
+                gpio_put(LED_BLUE, led_blue_state); // Aplica o novo estado
+                last_toggle_time = current_time;
+            }
         }
 
         // Exibe o ruído no display OLED
