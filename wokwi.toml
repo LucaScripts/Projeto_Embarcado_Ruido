@@ -1,4 +1,4 @@
 [wokwi]
 version = 1
 firmware = 'build/Monitor_Ruido.uf2'
-elf = 'build/Monitor_Ruido.c.elf'
+elf = 'build/Monitor_Ruido.elf'
