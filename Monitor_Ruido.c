@@ -18,6 +18,7 @@ const uint NUM_AMOSTRAS = 100;
 
 uint16_t ruido_base = 0; // Valor base do ruído ambiente
 bool buzzer_ligado = false; // Estado do buzzer
+bool led_vermelho_ligado = false; // Estado do LED vermelho
 
 void debounce_delay()
 {
@@ -136,7 +137,7 @@ int main()
         if (mic_value > limiar_1 && mic_value < limiar_2)
         {
             gpio_put(LED_BLUE, true); // Liga LED azul
-            gpio_put(LED_RED, false);
+            gpio_put(LED_RED, led_vermelho_ligado); // Mantém o estado do LED vermelho
             gpio_put(LED_GREEN, false); // Apaga o LED verde
         }
         else if (mic_value >= limiar_2)
@@ -144,10 +145,11 @@ int main()
             gpio_put(LED_BLUE, false);
             gpio_put(LED_RED, true); // Liga LED vermelho
             gpio_put(LED_GREEN, false); // Apaga o LED verde
+            led_vermelho_ligado = true; // Atualiza o estado do LED vermelho
         }
-        else
+        else if (mic_value < limiar_2)
         {
-            gpio_put(LED_BLUE, false); // Apaga o LED azul
+            led_vermelho_ligado = false; // Atualiza o estado do LED vermelho
             gpio_put(LED_RED, false); // Apaga o LED vermelho
             gpio_put(LED_GREEN, true); // Liga o LED verde, indicando que está quieto
         }
