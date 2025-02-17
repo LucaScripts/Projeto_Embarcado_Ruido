@@ -151,8 +151,8 @@ int main() {
     printf("Ruído base calibrado: %d\n", ruido_base);
 
     // Defina limiares para controle dos LEDs e buzzer (esses valores podem ser ajustados)
-    uint16_t limiar_1 = ruido_base + 20;   // Por exemplo, para acionar LED azul
-    uint16_t limiar_2 = ruido_base + 1000; // Para acionar LED vermelho
+    uint16_t limiar_1 = ruido_base + 100;   // Por exemplo, para acionar LED azul
+    uint16_t limiar_2 = 3000; // Para acionar LED vermelho
     uint16_t limiar_3 = 4000;              // Para acionar LED vermelho e buzzer
 
     float noiseFiltered = 0.0f; // Valor filtrado (em contagens) da amplitude AC
