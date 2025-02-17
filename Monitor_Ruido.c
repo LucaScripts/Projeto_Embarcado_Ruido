@@ -1,4 +1,13 @@
+/*
+ * Projeto: Monitor de Ruído
+ * Autor: LUCAS DIAS DA SILVA
+ * Descrição: Este projeto monitora os níveis de ruído ambiente usando um microfone conectado a um ADC.
+ *            O sistema aciona LEDs e um buzzer com base nos níveis de ruído detectados. Além disso,
+ *            exibe informações em um display OLED.
+ */
+
 #include <stdio.h>
+#include <math.h>  // Para log10() e fabs()
 #include "pico/stdlib.h"
 #include "hardware/adc.h"
 #include "hardware/gpio.h"
@@ -7,91 +16,101 @@
 #include "hardware/i2c.h"
 #include "lib/ssd1306.h"
 
-#define BUZZER_A 21  // Buzzer A conectado no GPIO21
-#define BUZZER_B 10  // Buzzer B conectado no GPIO10
-#define BUTTON_A 5    // Botão A conectado no GPIO5
-#define BUTTON_B 6    // Botão B conectado no GPIO6
+// Definições de pinos
+#define BUZZER_A 21   // Buzzer A no GPIO21
+#define BUZZER_B 10   // Buzzer B no GPIO10
+#define BUTTON_A 5    // Botão A no GPIO5
+#define BUTTON_B 6    // Botão B no GPIO6
 
-const uint LED_RED = 13;
-const uint LED_BLUE = 12;
-const uint LED_GREEN = 14; // LED Verde
-const uint MIC_ADC = 28;
+const uint LED_RED   = 13;
+const uint LED_BLUE  = 12;
+const uint LED_GREEN = 11; 
+const uint MIC_ADC   = 28; // ADC do microfone (GPIO28 -> ADC2)
 const uint NUM_AMOSTRAS = 100;
 
-#define I2C_PORT i2c1
-#define I2C_SDA 14
-#define I2C_SCL 15
+#define I2C_PORT    i2c1
+#define I2C_SDA     14
+#define I2C_SCL     15
 #define DISPLAY_ADDR 0x3C
-#define WIDTH 128
+#define WIDTH  128
 #define HEIGHT 64
 
 #define FILTER_SIZE 10
 
 ssd1306_t ssd;
 
-uint16_t ruido_base = 0; // Valor base do ruído ambiente
-bool buzzer_ligado = false; // Estado do buzzer
+uint16_t ruido_base = 0;       // Valor médio (offset) do sinal, aproximado de 2048
+bool buzzer_ligado = false;    // Estado do buzzer
 bool led_vermelho_ligado = false; // Estado do LED vermelho
 
-void debounce_delay()
-{
-    sleep_ms(50); // Pequeno atraso para debounce
+// --- Funções auxiliares ---
+
+// Pequeno atraso para debounce
+void debounce_delay() {
+    sleep_ms(50);
 }
 
-void emitir_som_buzzer(uint buzzer_pin)
-{
-    // Configura o GPIO para PWM
+// Emite som via PWM no buzzer (configurado para aproximadamente 2000 Hz)
+void emitir_som_buzzer(uint buzzer_pin) {
     gpio_set_function(buzzer_pin, GPIO_FUNC_PWM);
-    
-    // Obtém o número do slice de PWM
     uint slice_num = pwm_gpio_to_slice_num(buzzer_pin);
-    
-    // Frequência do som: 2000 Hz
-    pwm_set_clkdiv(slice_num, 125.0f);  // Ajuste para controle de frequência
-    pwm_set_wrap(slice_num, 1000);      // Ajuste da contagem de ciclos
-    pwm_set_chan_level(slice_num, PWM_CHAN_A, 900);  // Duty cycle de 90% para maior intensidade
-
-    pwm_set_enabled(slice_num, true);  // Ativa o PWM para gerar o som
+    pwm_set_clkdiv(slice_num, 125.0f);
+    pwm_set_wrap(slice_num, 1000);
+    pwm_set_chan_level(slice_num, PWM_CHAN_A, 900); // 90% de duty cycle
+    pwm_set_enabled(slice_num, true);
 }
 
-void parar_som_buzzer(uint buzzer_pin)
-{
+// Para o som do buzzer
+void parar_som_buzzer(uint buzzer_pin) {
     uint slice_num = pwm_gpio_to_slice_num(buzzer_pin);
-    pwm_set_enabled(slice_num, false);  // Desliga o PWM, apagando o som
+    pwm_set_enabled(slice_num, false);
 }
 
-// Função para calibrar o nível de ruído ambiente
-uint16_t calibrar_ruido()
-{
+// Calibração do ruído ambiente: lê NUM_AMOSTRAS e calcula a média, que deverá ser próxima de 2048
+uint16_t calibrar_ruido() {
     uint32_t soma = 0;
-    for (int i = 0; i < NUM_AMOSTRAS; i++)
-    {
-        adc_select_input(2); // Seleciona ADC2 (GPIO28)
+    for (int i = 0; i < NUM_AMOSTRAS; i++) {
+        adc_select_input(2); // ADC2 (GPIO28)
         soma += adc_read();
-        //sleep_ms(1); // Pequeno delay entre leituras
+        //sleep_ms(1); // Se necessário, pode adicionar um pequeno delay
     }
-    return soma / NUM_AMOSTRAS; // Retorna a média calculada
+    return soma / NUM_AMOSTRAS;
 }
 
+// Filtro móvel simples (média dos últimos FILTER_SIZE valores)
+// Agora usamos para filtrar a amplitude (valor absoluto) do sinal AC
 float filterNoise(float newValue) {
     static float values[FILTER_SIZE];
     static int index = 0;
     static int count = 0;
-    float sum = 0.0;
-
+    float sum = 0.0f;
     values[index] = newValue;
     index = (index + 1) % FILTER_SIZE;
-    count = count < FILTER_SIZE ? count + 1 : FILTER_SIZE;
-
+    if (count < FILTER_SIZE) count++;
     for (int i = 0; i < count; i++) {
         sum += values[i];
     }
-
     return sum / count;
 }
 
-int main()
-{
+// Função para converter a amplitude (em contagens do ADC) em dB SPL
+// "adc_amplitude" deve ser o valor absoluto (em contagens) do sinal AC filtrado.
+// "base" é o valor de offset (ruído ambiente).
+float convertToDBSPL(uint16_t adc_amplitude) {
+    // Converte contagens para tensão (ADC de 12 bits, Vref = 3.3V)
+    float voltage = adc_amplitude * (3.3f / 4095.0f);
+    // Sensibilidade do microfone (em V/Pa). Ajuste conforme o seu microfone.
+    const float MIC_SENSITIVITY = 0.007f; // Exemplo: 7 mV/Pa
+    // Converte tensão para pressão sonora (Pa)
+    float pressure = voltage / MIC_SENSITIVITY;
+    // Pressão de referência para 0 dB SPL em ar: 20 µPa
+    const float pref = 20e-6f;
+    if (pressure <= 0) pressure = 1e-9f; // Evita log de zero
+    float dbSPL = 20.0f * log10(pressure / pref);
+    return dbSPL;
+}
+
+int main() {
     stdio_init_all();
 
     // Inicializa os LEDs
@@ -99,123 +118,135 @@ int main()
     gpio_set_dir(LED_RED, GPIO_OUT);
     gpio_init(LED_BLUE);
     gpio_set_dir(LED_BLUE, GPIO_OUT);
-    gpio_init(LED_GREEN); // Inicializa o LED verde
+    gpio_init(LED_GREEN);
     gpio_set_dir(LED_GREEN, GPIO_OUT);
 
-    // Inicializa o ADC
+    // Inicializa o ADC e o GPIO do microfone
     adc_init();
     adc_gpio_init(MIC_ADC);
 
-    // Configuração do botão A
+    // Configura os botões com pull-up
     gpio_init(BUTTON_A);
     gpio_set_dir(BUTTON_A, GPIO_IN);
-    gpio_pull_up(BUTTON_A); // Ativa o pull-up para o botão A
-
-    // Configuração do botão B
+    gpio_pull_up(BUTTON_A);
     gpio_init(BUTTON_B);
     gpio_set_dir(BUTTON_B, GPIO_IN);
-    gpio_pull_up(BUTTON_B); // Ativa o pull-up para o botão B
+    gpio_pull_up(BUTTON_B);
 
-    // Configuração do I2C para o display OLED
+    // Configura o I2C para o display OLED
     i2c_init(I2C_PORT, 400 * 1000);
     gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
     gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
     gpio_pull_up(I2C_SDA);
     gpio_pull_up(I2C_SCL);
 
-    // Inicialização do display OLED
+    // Inicializa e configura o display OLED
     ssd1306_init(&ssd, WIDTH, HEIGHT, false, DISPLAY_ADDR, I2C_PORT);
     ssd1306_config(&ssd);
     ssd1306_fill(&ssd, false);
     ssd1306_send_data(&ssd);
 
     printf("Calibrando o ruído ambiente...\n");
-    ruido_base = calibrar_ruido();
+    ruido_base = calibrar_ruido();  // Este valor deve ser próximo de 2048
     printf("Ruído base calibrado: %d\n", ruido_base);
 
-    // Ajuste os limiares de sensibilidade aqui
-    uint16_t limiar_1 = ruido_base + 20; // Aumente ou diminua este valor para ajustar a sensibilidade do LED azul
-    uint16_t limiar_2 = ruido_base + 200; // Aumente ou diminua este valor para ajustar a sensibilidade do LED vermelho
+    // Defina limiares para controle dos LEDs e buzzer (esses valores podem ser ajustados)
+    uint16_t limiar_1 = ruido_base + 20;   // Por exemplo, para acionar LED azul
+    uint16_t limiar_2 = ruido_base + 1000; // Para acionar LED vermelho
+    uint16_t limiar_3 = 4000;              // Para acionar LED vermelho e buzzer
 
-    float currentNoise = 0.0;
-    float filteredNoise = 0.0;
+    float noiseFiltered = 0.0f; // Valor filtrado (em contagens) da amplitude AC
+    float noise_dBSPL = 0.0f;   // Nível em dB SPL
 
-    while (true)
-    {
-        // Verifica se o botão A foi pressionado
-        if (!gpio_get(BUTTON_A))
-        {
-            debounce_delay();  // Chama o debounce para evitar múltiplos registros rápidos
-            if (!buzzer_ligado)
-            {
+    while (true) {
+        // Botão A: ativa/desativa o buzzer
+        if (!gpio_get(BUTTON_A)) {
+            debounce_delay();
+            if (!buzzer_ligado) {
                 printf("[BOTÃO A] Pressionado! Emitindo som no buzzer.\n");
-                emitir_som_buzzer(BUZZER_A); // Emite som no buzzer A
-                emitir_som_buzzer(BUZZER_B); // Emite som no buzzer B
-                buzzer_ligado = true; // Atualiza o estado do buzzer
-            }
-            else
-            {
+                emitir_som_buzzer(BUZZER_A);
+                emitir_som_buzzer(BUZZER_B);
+                buzzer_ligado = true;
+            } else {
                 printf("[BOTÃO A] Pressionado! Parando som no buzzer.\n");
-                parar_som_buzzer(BUZZER_A);  // Para o som do buzzer A
-                parar_som_buzzer(BUZZER_B);  // Para o som do buzzer B
-                buzzer_ligado = false; // Atualiza o estado do buzzer
+                parar_som_buzzer(BUZZER_A);
+                parar_som_buzzer(BUZZER_B);
+                buzzer_ligado = false;
             }
-            // Espera até que o botão seja liberado
-            while (!gpio_get(BUTTON_A))
-            {
+            while (!gpio_get(BUTTON_A)) {
                 sleep_ms(10);
             }
         }
-
-        // Verifica se o botão B foi pressionado para entrar em modo BOOTSEL
-        if (!gpio_get(BUTTON_B))
-        {
-            debounce_delay();  // Chama o debounce para evitar múltiplos registros rápidos
+        
+        // Botão B: entra no modo BOOTSEL
+        if (!gpio_get(BUTTON_B)) {
+            debounce_delay();
             printf("[BOTÃO B] Pressionado! Entrando em modo BOOTSEL.\n");
-            reset_usb_boot(0, 0); // Chama o comando para resetar e entrar no BOOTSEL
+            reset_usb_boot(0, 0);
         }
-
-        // Lê o valor do microfone
+        
+        // Lê o valor do microfone (valor bruto do ADC: 0 a 4095)
         adc_select_input(2);
         uint16_t mic_value = adc_read();
-
-        currentNoise = (float)mic_value;
-        filteredNoise = filterNoise(currentNoise);
-        printf("Filtered Noise: %f\n", filteredNoise);
-
-        // Controle dos LEDs baseado no ruído
-        if (mic_value > limiar_1 && mic_value < limiar_2)
-        {
-            gpio_put(LED_BLUE, true); // Liga LED azul
-            gpio_put(LED_RED, led_vermelho_ligado); // Mantém o estado do LED vermelho
-            gpio_put(LED_GREEN, false); // Apaga o LED verde
+        
+        // Calcula o sinal AC: subtrai o offset (ruído_base)
+        int16_t sample = (int16_t)mic_value - (int16_t)ruido_base;
+        // Calcula o valor absoluto (amplitude) do sinal AC
+        float abs_sample = fabs((float)sample);
+        // Aplica o filtro móvel para suavizar a medição (em contagens)
+        noiseFiltered = filterNoise(abs_sample);
+        // Converte a amplitude filtrada em dB SPL
+        noise_dBSPL = convertToDBSPL((uint16_t)noiseFiltered);
+        
+        printf("ADC Bruto: %d | Amplitude Filtrada: %.1f | dB SPL: %.1f\n", mic_value, noiseFiltered, noise_dBSPL);
+        
+        // Controle dos LEDs e buzzer com base no valor bruto (você pode também usar o dB SPL)
+        if (mic_value > limiar_1 && mic_value < limiar_2) {
+            gpio_put(LED_BLUE, true);
+            gpio_put(LED_RED, false);
+            gpio_put(LED_GREEN, false);
+            parar_som_buzzer(BUZZER_A);
+            parar_som_buzzer(BUZZER_B);
         }
-        else if (mic_value >= limiar_2)
-        {
+        else if (mic_value >= limiar_2 && mic_value < limiar_3) {
             gpio_put(LED_BLUE, false);
-            gpio_put(LED_RED, true); // Liga LED vermelho
-            gpio_put(LED_GREEN, false); // Apaga o LED verde
-            led_vermelho_ligado = true; // Atualiza o estado do LED vermelho
+            gpio_put(LED_RED, true);
+            gpio_put(LED_GREEN, false);
+            parar_som_buzzer(BUZZER_A);
+            parar_som_buzzer(BUZZER_B);
         }
-        else if (mic_value < limiar_2)
-        {
-            led_vermelho_ligado = false; // Atualiza o estado do LED vermelho
-            gpio_put(LED_RED, false); // Apaga o LED vermelho
-            gpio_put(LED_GREEN, true); // Liga o LED verde, indicando que está quieto
+        else if (mic_value >= limiar_3) {
+            gpio_put(LED_BLUE, false);
+            gpio_put(LED_RED, true);
+            gpio_put(LED_GREEN, false);
+            emitir_som_buzzer(BUZZER_A);
+            emitir_som_buzzer(BUZZER_B);
         }
-
-        // Atualiza o display OLED com os valores de ruído e limiares
+        else { // mic_value <= limiar_1
+            gpio_put(LED_BLUE, false);
+            gpio_put(LED_RED, false);
+            gpio_put(LED_GREEN, true);
+            parar_som_buzzer(BUZZER_A);
+            parar_som_buzzer(BUZZER_B);
+        }
+        
+        // Atualiza o display OLED com informações
         ssd1306_clear(&ssd);
         char buffer[32];
-        snprintf(buffer, sizeof(buffer), "Ruido: %d", mic_value);
+        snprintf(buffer, sizeof(buffer), "ADC: %d", mic_value);
         ssd1306_draw_string(&ssd, buffer, 0, 0);
-        snprintf(buffer, sizeof(buffer), "Limiar A: %d", limiar_1);
+        snprintf(buffer, sizeof(buffer), "dB SPL: %.1f", noise_dBSPL);
         ssd1306_draw_string(&ssd, buffer, 0, 10);
-        snprintf(buffer, sizeof(buffer), "Limiar V: %d", limiar_2);
+        snprintf(buffer, sizeof(buffer), "Medio: %d", limiar_1);
         ssd1306_draw_string(&ssd, buffer, 0, 20);
+        snprintf(buffer, sizeof(buffer), "Alto: %d", limiar_2);
+        ssd1306_draw_string(&ssd, buffer, 0, 30);
+        snprintf(buffer, sizeof(buffer), "Extremo: %d", limiar_3);
+        ssd1306_draw_string(&ssd, buffer, 0, 40);
         ssd1306_send_data(&ssd);
-
-        printf("Ruído: %d | Limiar Azul: %d | Limiar Vermelho: %d\n", mic_value, limiar_1, limiar_2);
-        sleep_ms(100); // Pequeno delay
+        
+        sleep_ms(100);
     }
+    
+    return 0;
 }
