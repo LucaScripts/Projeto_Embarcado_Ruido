@@ -173,28 +173,25 @@ void ssd1306_vline(ssd1306_t *ssd, uint8_t x, uint8_t y0, uint8_t y1, bool value
     ssd1306_pixel(ssd, x, y, value);
 }
 
-// Função para desenhar um caractere
-void ssd1306_draw_char(ssd1306_t *ssd, char c, uint8_t x, uint8_t y)
-{
+// Função para desenhar um caractere no display SSD1306
+void ssd1306_draw_char(ssd1306_t *ssd, char c, uint8_t x, uint8_t y) {
   uint16_t index = 0;
-  char ver=c;
-  if (c >= 'A' && c <= 'Z')
-  {
+  if (c >= 'A' && c <= 'Z') {
     index = (c - 'A' + 11) * 8; // Para letras maiúsculas
-  }else  if (c >= '0' && c <= '9')
-  {
+  } else if (c >= '0' && c <= '9') {
     index = (c - '0' + 1) * 8; // Adiciona o deslocamento necessário
+  } else if (c >= 'a' && c <= 'z') {
+    index = (c - 'a' + 37) * 8; // Para letras minúsculas
   }
   
-  for (uint8_t i = 0; i < 8; ++i)
-  {
+  for (uint8_t i = 0; i < 8; ++i) {
     uint8_t line = font[index + i];
-    for (uint8_t j = 0; j < 8; ++j)
-    {
+    for (uint8_t j = 0; j < 8; ++j) {
       ssd1306_pixel(ssd, x + i, y + j, line & (1 << j));
     }
   }
 }
+
 
 // Função para desenhar uma string
 void ssd1306_draw_string(ssd1306_t *ssd, const char *str, uint8_t x, uint8_t y)

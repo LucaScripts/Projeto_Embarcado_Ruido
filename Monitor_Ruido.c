@@ -4,6 +4,8 @@
 #include "hardware/gpio.h"
 #include "pico/bootrom.h"
 #include "hardware/pwm.h"
+#include "hardware/i2c.h"
+#include "lib/ssd1306.h"
 
 #define BUZZER_A 21  // Buzzer A conectado no GPIO21
 #define BUZZER_B 10  // Buzzer B conectado no GPIO10
@@ -15,6 +17,17 @@ const uint LED_BLUE = 12;
 const uint LED_GREEN = 14; // LED Verde
 const uint MIC_ADC = 28;
 const uint NUM_AMOSTRAS = 100;
+
+#define I2C_PORT i2c1
+#define I2C_SDA 14
+#define I2C_SCL 15
+#define DISPLAY_ADDR 0x3C
+#define WIDTH 128
+#define HEIGHT 64
+
+#define FILTER_SIZE 10
+
+ssd1306_t ssd;
 
 uint16_t ruido_base = 0; // Valor base do ruído ambiente
 bool buzzer_ligado = false; // Estado do buzzer
@@ -55,9 +68,26 @@ uint16_t calibrar_ruido()
     {
         adc_select_input(2); // Seleciona ADC2 (GPIO28)
         soma += adc_read();
-        sleep_ms(5); // Pequeno delay entre leituras
+        //sleep_ms(1); // Pequeno delay entre leituras
     }
     return soma / NUM_AMOSTRAS; // Retorna a média calculada
+}
+
+float filterNoise(float newValue) {
+    static float values[FILTER_SIZE];
+    static int index = 0;
+    static int count = 0;
+    float sum = 0.0;
+
+    values[index] = newValue;
+    index = (index + 1) % FILTER_SIZE;
+    count = count < FILTER_SIZE ? count + 1 : FILTER_SIZE;
+
+    for (int i = 0; i < count; i++) {
+        sum += values[i];
+    }
+
+    return sum / count;
 }
 
 int main()
@@ -86,13 +116,29 @@ int main()
     gpio_set_dir(BUTTON_B, GPIO_IN);
     gpio_pull_up(BUTTON_B); // Ativa o pull-up para o botão B
 
+    // Configuração do I2C para o display OLED
+    i2c_init(I2C_PORT, 400 * 1000);
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
+    gpio_pull_up(I2C_SDA);
+    gpio_pull_up(I2C_SCL);
+
+    // Inicialização do display OLED
+    ssd1306_init(&ssd, WIDTH, HEIGHT, false, DISPLAY_ADDR, I2C_PORT);
+    ssd1306_config(&ssd);
+    ssd1306_fill(&ssd, false);
+    ssd1306_send_data(&ssd);
+
     printf("Calibrando o ruído ambiente...\n");
     ruido_base = calibrar_ruido();
     printf("Ruído base calibrado: %d\n", ruido_base);
 
-    // Define os limiares com base na calibração
-    uint16_t limiar_1 = ruido_base + 100; // Ativa LED azul
-    uint16_t limiar_2 = ruido_base + 300; // Ativa LED vermelho
+    // Ajuste os limiares de sensibilidade aqui
+    uint16_t limiar_1 = ruido_base + 20; // Aumente ou diminua este valor para ajustar a sensibilidade do LED azul
+    uint16_t limiar_2 = ruido_base + 200; // Aumente ou diminua este valor para ajustar a sensibilidade do LED vermelho
+
+    float currentNoise = 0.0;
+    float filteredNoise = 0.0;
 
     while (true)
     {
@@ -133,6 +179,10 @@ int main()
         adc_select_input(2);
         uint16_t mic_value = adc_read();
 
+        currentNoise = (float)mic_value;
+        filteredNoise = filterNoise(currentNoise);
+        printf("Filtered Noise: %f\n", filteredNoise);
+
         // Controle dos LEDs baseado no ruído
         if (mic_value > limiar_1 && mic_value < limiar_2)
         {
@@ -153,6 +203,17 @@ int main()
             gpio_put(LED_RED, false); // Apaga o LED vermelho
             gpio_put(LED_GREEN, true); // Liga o LED verde, indicando que está quieto
         }
+
+        // Atualiza o display OLED com os valores de ruído e limiares
+        ssd1306_clear(&ssd);
+        char buffer[32];
+        snprintf(buffer, sizeof(buffer), "Ruido: %d", mic_value);
+        ssd1306_draw_string(&ssd, buffer, 0, 0);
+        snprintf(buffer, sizeof(buffer), "Limiar A: %d", limiar_1);
+        ssd1306_draw_string(&ssd, buffer, 0, 10);
+        snprintf(buffer, sizeof(buffer), "Limiar V: %d", limiar_2);
+        ssd1306_draw_string(&ssd, buffer, 0, 20);
+        ssd1306_send_data(&ssd);
 
         printf("Ruído: %d | Limiar Azul: %d | Limiar Vermelho: %d\n", mic_value, limiar_1, limiar_2);
         sleep_ms(100); // Pequeno delay
