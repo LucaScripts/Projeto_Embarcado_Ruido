@@ -64,4 +64,7 @@ Este projeto monitora os níveis de ruído ambiente usando um microfone conectad
 - **Alto**: Limiar alto configurado.
 - **Extremo**: Limiar extremo configurado.
 
+## Referência
+Este projeto foi baseado no repositório [BitDogLab-C](https://github.com/BitDogLab/BitDogLab-C.git).
+
 
