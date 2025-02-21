@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <math.h>  // Para log10() e fabs()
+#include <string.h> // Para strlen
 #include "pico/stdlib.h"
 #include "hardware/adc.h"
 #include "hardware/gpio.h"
@@ -108,6 +109,13 @@ float convertToDBSPL(uint16_t adc_amplitude) {
     if (pressure <= 0) pressure = 1e-9f; // Evita log de zero
     float dbSPL = 20.0f * log10(pressure / pref);
     return dbSPL;
+}
+
+// Função auxiliar para centralizar texto no display com deslocamento opcional no eixo X
+void draw_centered_string(ssd1306_t *ssd, const char *str, int y, int x_offset) {
+    int len = strlen(str);
+    int x = ((WIDTH - (len * 6)) / 2) + x_offset; // Cada caractere tem aproximadamente 6 pixels de largura
+    ssd1306_draw_string(ssd, str, x, y);
 }
 
 int main() {
@@ -234,15 +242,17 @@ int main() {
         ssd1306_clear(&ssd);
         char buffer[32];
         snprintf(buffer, sizeof(buffer), "ADC: %d", mic_value);
-        ssd1306_draw_string(&ssd, buffer, 0, 0);
+        draw_centered_string(&ssd, buffer, 5, -10);
         snprintf(buffer, sizeof(buffer), "dB SPL: %.1f", noise_dBSPL);
-        ssd1306_draw_string(&ssd, buffer, 0, 10);
+        draw_centered_string(&ssd, buffer, 15, -10); // Exibe o nível em dB SPL
         snprintf(buffer, sizeof(buffer), "Medio: %d", limiar_1);
-        ssd1306_draw_string(&ssd, buffer, 0, 20);
+        draw_centered_string(&ssd, buffer, 25, -10); // Exibe o limiar 1
         snprintf(buffer, sizeof(buffer), "Alto: %d", limiar_2);
-        ssd1306_draw_string(&ssd, buffer, 0, 30);
+        draw_centered_string(&ssd, buffer, 35, -10); // Exibe o limiar 2
         snprintf(buffer, sizeof(buffer), "Extremo: %d", limiar_3);
-        ssd1306_draw_string(&ssd, buffer, 0, 40);
+        draw_centered_string(&ssd, buffer, 45, -10); // Exibe o limiar 3
+        snprintf(buffer, sizeof(buffer), "Buzzer: %s", buzzer_ligado ? "ON" : "OFF");
+        draw_centered_string(&ssd, buffer, 55, -10); // Exibe o estado do buzzer
         ssd1306_send_data(&ssd);
         
         sleep_ms(100);
