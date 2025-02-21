@@ -81,7 +81,7 @@ Para baixar o código e começar a trabalhar com ele, clone o repositório e car
 
 Abaixo está uma prévia da simulação serial no **Wokwi**:
 
-![Wokwi](https://github.com/LucaScripts/ConversoresAD/blob/main/docs/diagram.json%20-%20ConversoresAD%20-%20Visual%20Studio%20Code%202025-02-14%2018-49-32.gif?raw=true)
+![Wokwi]()
 
 🔗[Demonstração no Wokwi]()
 
