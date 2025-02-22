@@ -213,29 +213,37 @@ int main() {
             gpio_put(LED_BLUE, true);
             gpio_put(LED_RED, false);
             gpio_put(LED_GREEN, false);
-            parar_som_buzzer(BUZZER_A);
-            parar_som_buzzer(BUZZER_B);
+            if (!buzzer_ligado) {
+                parar_som_buzzer(BUZZER_A);
+                parar_som_buzzer(BUZZER_B);
+            }
         }
         else if (mic_value >= limiar_2 && mic_value < limiar_3) {
             gpio_put(LED_BLUE, false);
             gpio_put(LED_RED, true);
             gpio_put(LED_GREEN, false);
-            parar_som_buzzer(BUZZER_A);
-            parar_som_buzzer(BUZZER_B);
+            if (!buzzer_ligado) {
+                parar_som_buzzer(BUZZER_A);
+                parar_som_buzzer(BUZZER_B);
+            }
         }
         else if (mic_value >= limiar_3) {
             gpio_put(LED_BLUE, false);
             gpio_put(LED_RED, true);
             gpio_put(LED_GREEN, false);
-            emitir_som_buzzer(BUZZER_A);
-            emitir_som_buzzer(BUZZER_B);
+            if (!buzzer_ligado) {
+                emitir_som_buzzer(BUZZER_A);
+                emitir_som_buzzer(BUZZER_B);
+            }
         }
         else { // mic_value <= limiar_1
             gpio_put(LED_BLUE, false);
             gpio_put(LED_RED, false);
             gpio_put(LED_GREEN, true);
-            parar_som_buzzer(BUZZER_A);
-            parar_som_buzzer(BUZZER_B);
+            if (!buzzer_ligado) {
+                parar_som_buzzer(BUZZER_A);
+                parar_som_buzzer(BUZZER_B);
+            }
         }
         
         // Atualiza o display OLED com informações
@@ -257,10 +265,10 @@ int main() {
         snprintf(buffer, sizeof(buffer), "Alto:   %d", limiar_2);
         draw_centered_string(&ssd, buffer, 35, -13); // Exibe o limiar 2
         snprintf(buffer, sizeof(buffer), "Extremo:%d", limiar_3);
-        draw_centered_string(&ssd, buffer, 45, -10); // Exibe o limiar 3
+        draw_centered_string(&ssd, buffer, 45, -13); // Exibe o limiar 3
         
         // Desenha o texto fixo "Buzzer:"
-        ssd1306_draw_string(&ssd, "Buzzer:", 19, 55); // Ajuste a posição x conforme necessário
+        ssd1306_draw_string(&ssd, "Buzzer:", 15, 55); // Ajuste a posição x conforme necessário
         // Limpa a área onde o estado do buzzer será exibido
         ssd1306_fill_rect(&ssd, 90, 53, 30, 10, false); // Ajuste a altura para 16 pixels e a posição Y para 53
         // Desenha o estado do buzzer
