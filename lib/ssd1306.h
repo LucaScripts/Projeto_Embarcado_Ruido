@@ -1,6 +1,11 @@
+#ifndef SSD1306_H
+#define SSD1306_H
+
 #include <stdlib.h>
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 #define WIDTH 128
 #define HEIGHT 64
@@ -53,3 +58,6 @@ void ssd1306_clear(ssd1306_t *ssd);
 void ssd1306_draw_text(ssd1306_t *ssd, uint8_t x, uint8_t y, const char *text);
 void ssd1306_show(ssd1306_t *ssd);
 void ssd1306_draw_border(ssd1306_t *ssd);
+void ssd1306_fill_rect(ssd1306_t *ssd, int x, int y, int width, int height, bool color);
+
+#endif // SSD1306_H

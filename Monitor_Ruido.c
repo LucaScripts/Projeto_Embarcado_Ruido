@@ -243,23 +243,30 @@ int main() {
         // ssd1306_clear(&ssd); // Remova esta linha
         ssd1306_draw_border(&ssd); // Desenha a borda ao redor do display
         char buffer[32];
-        snprintf(buffer, sizeof(buffer), "ADC: %d", mic_value);
-        draw_centered_string(&ssd, buffer, 5, -10);
+        snprintf(buffer, sizeof(buffer), "ADC:    %d", mic_value);
+        draw_centered_string(&ssd, buffer, 5, -17);
         
         // Desenha o texto fixo "dB SPL:"
         ssd1306_draw_string(&ssd, "dB SPL:", 10, 15);
         // Desenha o valor numérico na mesma linha
-        snprintf(buffer, sizeof(buffer), " %.1f", noise_dBSPL);
+        snprintf(buffer, sizeof(buffer), "  %.1f", noise_dBSPL);
         ssd1306_draw_string(&ssd, buffer, 60, 15); // Ajuste a posição x conforme necessário
         
-        snprintf(buffer, sizeof(buffer), "Medio: %d", limiar_1);
-        draw_centered_string(&ssd, buffer, 25, -10); // Exibe o limiar 1
-        snprintf(buffer, sizeof(buffer), "Alto:  %d", limiar_2);
-        draw_centered_string(&ssd, buffer, 35, -10); // Exibe o limiar 2
+        snprintf(buffer, sizeof(buffer), "Medio:  %d", limiar_1);
+        draw_centered_string(&ssd, buffer, 25, -13); // Exibe o limiar 1
+        snprintf(buffer, sizeof(buffer), "Alto:   %d", limiar_2);
+        draw_centered_string(&ssd, buffer, 35, -13); // Exibe o limiar 2
         snprintf(buffer, sizeof(buffer), "Extremo:%d", limiar_3);
         draw_centered_string(&ssd, buffer, 45, -10); // Exibe o limiar 3
-        snprintf(buffer, sizeof(buffer), "Buzzer: %s", buzzer_ligado ? "ON" : "OFF");
-        draw_centered_string(&ssd, buffer, 55, -10); // Exibe o estado do buzzer
+        
+        // Desenha o texto fixo "Buzzer:"
+        ssd1306_draw_string(&ssd, "Buzzer:", 19, 55); // Ajuste a posição x conforme necessário
+        // Limpa a área onde o estado do buzzer será exibido
+        ssd1306_fill_rect(&ssd, 90, 53, 30, 10, false); // Ajuste a altura para 16 pixels e a posição Y para 53
+        // Desenha o estado do buzzer
+        snprintf(buffer, sizeof(buffer), "%s", buzzer_ligado ? "ON" : "OFF");
+        ssd1306_draw_string(&ssd, buffer, 88, 55); // Ajuste a posição x conforme necessário
+
         ssd1306_send_data(&ssd);
         
         sleep_ms(100);

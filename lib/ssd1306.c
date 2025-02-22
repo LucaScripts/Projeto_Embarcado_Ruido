@@ -215,3 +215,11 @@ void ssd1306_draw_string(ssd1306_t *ssd, const char *str, uint8_t x, uint8_t y)
 void ssd1306_draw_border(ssd1306_t *ssd) {
     ssd1306_rect(ssd, 0, 0, ssd->width, ssd->height, true, false);
 }
+
+void ssd1306_fill_rect(ssd1306_t *ssd, int x, int y, int width, int height, bool color) {
+    for (int i = x; i < x + width; i++) {
+        for (int j = y; j < y + height; j++) {
+            ssd1306_pixel(ssd, i, j, color);
+        }
+    }
+}
