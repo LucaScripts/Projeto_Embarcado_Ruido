@@ -239,18 +239,24 @@ int main() {
         }
         
         // Atualiza o display OLED com informações
-        ssd1306_clear(&ssd);
+        // Em vez de limpar a tela inteira, atualize apenas as partes necessárias
+        // ssd1306_clear(&ssd); // Remova esta linha
         ssd1306_draw_border(&ssd); // Desenha a borda ao redor do display
         char buffer[32];
         snprintf(buffer, sizeof(buffer), "ADC: %d", mic_value);
         draw_centered_string(&ssd, buffer, 5, -10);
-        snprintf(buffer, sizeof(buffer), "dB SPL: %.1f", noise_dBSPL);
-        draw_centered_string(&ssd, buffer, 15, -10); // Exibe o nível em dB SPL
+        
+        // Desenha o texto fixo "dB SPL:"
+        ssd1306_draw_string(&ssd, "dB SPL:", 10, 15);
+        // Desenha o valor numérico na mesma linha
+        snprintf(buffer, sizeof(buffer), " %.1f", noise_dBSPL);
+        ssd1306_draw_string(&ssd, buffer, 60, 15); // Ajuste a posição x conforme necessário
+        
         snprintf(buffer, sizeof(buffer), "Medio: %d", limiar_1);
         draw_centered_string(&ssd, buffer, 25, -10); // Exibe o limiar 1
-        snprintf(buffer, sizeof(buffer), "Alto: %d", limiar_2);
+        snprintf(buffer, sizeof(buffer), "Alto:  %d", limiar_2);
         draw_centered_string(&ssd, buffer, 35, -10); // Exibe o limiar 2
-        snprintf(buffer, sizeof(buffer), "Extremo: %d", limiar_3);
+        snprintf(buffer, sizeof(buffer), "Extremo:%d", limiar_3);
         draw_centered_string(&ssd, buffer, 45, -10); // Exibe o limiar 3
         snprintf(buffer, sizeof(buffer), "Buzzer: %s", buzzer_ligado ? "ON" : "OFF");
         draw_centered_string(&ssd, buffer, 55, -10); // Exibe o estado do buzzer
