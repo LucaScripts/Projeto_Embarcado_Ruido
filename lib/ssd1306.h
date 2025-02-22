@@ -52,3 +52,4 @@ void ssd1306_draw_string(ssd1306_t *ssd, const char *str, uint8_t x, uint8_t y);
 void ssd1306_clear(ssd1306_t *ssd);
 void ssd1306_draw_text(ssd1306_t *ssd, uint8_t x, uint8_t y, const char *text);
 void ssd1306_show(ssd1306_t *ssd);
+void ssd1306_draw_border(ssd1306_t *ssd);

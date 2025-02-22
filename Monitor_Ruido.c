@@ -240,6 +240,7 @@ int main() {
         
         // Atualiza o display OLED com informações
         ssd1306_clear(&ssd);
+        ssd1306_draw_border(&ssd); // Desenha a borda ao redor do display
         char buffer[32];
         snprintf(buffer, sizeof(buffer), "ADC: %d", mic_value);
         draw_centered_string(&ssd, buffer, 5, -10);
