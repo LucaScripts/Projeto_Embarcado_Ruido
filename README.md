@@ -91,7 +91,7 @@ Abaixo está uma prévia da simulação serial no **Wokwi**:
 
 ![Wokwi]()
 
-🔗[Demonstração no Wokwi]()
+🔗[Demonstração no Wokwi](https://wokwi.com/projects/423703650670728193)
 
 ---
 
