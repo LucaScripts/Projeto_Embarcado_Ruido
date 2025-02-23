@@ -19,21 +19,21 @@ Este projeto monitora os níveis de ruído ambiente usando um microfone conectad
 ---
 
 ## 🛠 **Materiais Necessários**
-🔹 1x **Microfone**  
-🔹 3x **LEDs** (Verde, Azul, Vermelho)  
-🔹 1x **Buzzer**  
-🔹 1x **Display OLED**  
-🔹 2x **Botões** (A e B)  
-🔹 1x **Raspberry Pi Pico**  
+- 1x **Microfone**
+- 3x **LEDs** (Verde, Azul, Vermelho)
+- 1x **Buzzer**
+- 1x **Display OLED**
+- 2x **Botões** (A e B)
+- 1x **Raspberry Pi Pico**
 
 ---
 
 ## 🔧 **Configuração dos Componentes**
-- **LED Verde**: Indica operação normal (níveis de ruído abaixo do limiar de alerta).  
-- **LED Azul**: Indica níveis de ruído médios.  
-- **LED Vermelho**: Indica níveis de ruído altos.  
-- **Buzzer**: Emite um alerta sonoro quando o nível de ruído atinge níveis extremos.  
-- **Display OLED**: Exibe informações sobre os níveis de ruído e os limiares configurados.  
+- **LED Verde**: Indica operação normal (níveis de ruído abaixo do limiar de alerta).
+- **LED Azul**: Indica níveis de ruído médios.
+- **LED Vermelho**: Indica níveis de ruído altos.
+- **Buzzer**: Emite um alerta sonoro quando o nível de ruído atinge níveis extremos.
+- **Display OLED**: Exibe informações sobre os níveis de ruído e os limiares configurados.
 
 ---
 
@@ -69,12 +69,20 @@ Este projeto monitora os níveis de ruído ambiente usando um microfone conectad
 
 ---
 
-## 📥 Clonando o Repositório e Compilando o Código
+## 📥 **Clonando o Repositório e Compilando o Código**
 
 Para baixar o código e começar a trabalhar com ele, clone o repositório e carregue o código na placa seguindo os passos abaixo:
 
 ![Clonando o Repositório](https://github.com/LucaScripts/PWM/blob/main/docs/Bem-vindo%20-%20Visual%20Studio%20Code%202025-01-31%2018-49-32%20(1).gif?raw=true)
 
+```sh
+git clone https://github.com/LucaScripts/Projeto_Emcarcado_Ruido.git
+cd Projeto_Emcarcado_Ruido
+mkdir build
+cd build
+cmake ..
+make
+```
 ---
 
 ## 🚦 **Demonstração da Simulação Wokwi**
