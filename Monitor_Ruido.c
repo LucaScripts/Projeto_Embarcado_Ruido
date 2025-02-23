@@ -73,7 +73,6 @@ uint16_t calibrar_ruido() {
     for (int i = 0; i < NUM_AMOSTRAS; i++) {
         adc_select_input(2); // ADC2 (GPIO28)
         soma += adc_read();
-        //sleep_ms(1); // Se necessário, pode adicionar um pequeno delay
     }
     return soma / NUM_AMOSTRAS;
 }
@@ -96,7 +95,6 @@ float filterNoise(float newValue) {
 
 // Função para converter a amplitude (em contagens do ADC) em dB SPL
 // "adc_amplitude" deve ser o valor absoluto (em contagens) do sinal AC filtrado.
-// "base" é o valor de offset (ruído ambiente).
 float convertToDBSPL(uint16_t adc_amplitude) {
     // Converte contagens para tensão (ADC de 12 bits, Vref = 3.3V)
     float voltage = adc_amplitude * (3.3f / 4095.0f);
@@ -247,12 +245,10 @@ int main() {
         }
         
         // Atualiza o display OLED com informações
-        // Em vez de limpar a tela inteira, atualize apenas as partes necessárias
-        // ssd1306_clear(&ssd); // Remova esta linha
         ssd1306_draw_border(&ssd); // Desenha a borda ao redor do display
         char buffer[32];
         snprintf(buffer, sizeof(buffer), "ADC:    %d", mic_value);
-        draw_centered_string(&ssd, buffer, 5, -17);
+        draw_centered_string(&ssd, buffer, 5, -15);
         
         // Desenha o texto fixo "dB SPL:"
         ssd1306_draw_string(&ssd, "dB SPL:", 10, 15);
