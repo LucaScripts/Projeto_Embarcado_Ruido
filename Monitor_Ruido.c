@@ -193,8 +193,19 @@ int main() {
         
         // Lê o valor do microfone (valor bruto do ADC: 0 a 4095)
         adc_select_input(2);
-        uint16_t mic_value = adc_read();
+        uint16_t mic_value = 0;
+        for (int i = 0; i < 10; i++) { // Média de 10 leituras para suavizar
+            mic_value += adc_read();
+            sleep_us(10); // Reduzido o atraso entre leituras
+        }
+        mic_value /= 10;
         
+        // Verificação adicional para valores fora do esperado
+        if (mic_value > 4095 || mic_value < 0 || mic_value < ruido_base) {
+            printf("Valor do ADC fora do intervalo esperado ou abaixo do ruído base: %d\n", mic_value);
+            continue; // Ignora esta leitura
+        }
+
         // Calcula o sinal AC: subtrai o offset (ruído_base)
         int16_t sample = (int16_t)mic_value - (int16_t)ruido_base;
         // Calcula o valor absoluto (amplitude) do sinal AC
@@ -204,7 +215,8 @@ int main() {
         // Converte a amplitude filtrada em dB SPL
         noise_dBSPL = convertToDBSPL((uint16_t)noiseFiltered);
         
-        printf("ADC Bruto: %d | Amplitude Filtrada: %.1f | dB SPL: %.1f\n", mic_value, noiseFiltered, noise_dBSPL);
+        // Adiciona logs para verificar a consistência dos valores
+        printf("ADC Bruto: %d | Amplitude: %.1f | dB SPL: %.1f\n", mic_value, noiseFiltered, noise_dBSPL);
         
         // Controle dos LEDs e buzzer com base no valor bruto (você pode também usar o dB SPL)
         if (mic_value > limiar_1 && mic_value < limiar_2) {
@@ -273,7 +285,7 @@ int main() {
 
         ssd1306_send_data(&ssd);
         
-        sleep_ms(100);
+        sleep_ms(10); // Reduzido o tempo de espera no loop principal
     }
     
     return 0;
