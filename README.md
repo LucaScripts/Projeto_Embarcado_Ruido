@@ -105,11 +105,11 @@ Abaixo está uma prévia da simulação serial no **Wokwi**:
 
 Abaixo está uma prévia do display na **BitDogLab**:
 
-![display]()
+![display](https://github.com/LucaScripts/Projeto_Embarcado_Ruido/blob/main/docs/gif%20display.gif?raw=true)
 
 Abaixo está uma prévia do RGB na **BitDogLab**:
 
-![RGB PWM]()
+![RGB](https://github.com/LucaScripts/Projeto_Embarcado_Ruido/blob/main/docs/gif%20LED%20RGB.gif?raw=true)
 
 ---
 
