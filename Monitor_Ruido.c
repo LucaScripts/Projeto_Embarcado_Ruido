@@ -16,6 +16,7 @@
 #include "hardware/pwm.h"
 #include "hardware/i2c.h"
 #include "lib/ssd1306.h"
+#include "wifi_config.h"  // Adicione esta linha
 
 // Definições de pinos
 #define BUZZER_A 21   // Buzzer A no GPIO21
@@ -43,6 +44,11 @@ ssd1306_t ssd;
 uint16_t ruido_base = 0;       // Valor médio (offset) do sinal, aproximado de 2048
 bool buzzer_ligado = false;    // Estado do buzzer
 bool led_vermelho_ligado = false; // Estado do LED vermelho
+
+// Variáveis globais para armazenar os valores do ADC
+extern volatile uint16_t adc_value;
+extern volatile float amplitude;
+extern volatile float db_spl;
 
 // --- Funções auxiliares ---
 
@@ -118,6 +124,9 @@ void draw_centered_string(ssd1306_t *ssd, const char *str, int y, int x_offset) 
 
 int main() {
     stdio_init_all();
+
+    // Inicializa o Wi-Fi e o servidor HTTP
+    start_wifi();
 
     // Inicializa os LEDs
     gpio_init(LED_RED);
@@ -217,6 +226,11 @@ int main() {
         
         // Adiciona logs para verificar a consistência dos valores
         printf("ADC Bruto: %d | Amplitude: %.1f | dB SPL: %.1f\n", mic_value, noiseFiltered, noise_dBSPL);
+        
+        // Atualiza as variáveis globais
+        adc_value = mic_value;
+        amplitude = noiseFiltered;
+        db_spl = noise_dBSPL;
         
         // Controle dos LEDs e buzzer com base no valor bruto (você pode também usar o dB SPL)
         if (mic_value > limiar_1 && mic_value < limiar_2) {

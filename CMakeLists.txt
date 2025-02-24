@@ -20,7 +20,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Define o tipo de placa (Pico ou Pico W)
-set(PICO_BOARD pico CACHE STRING "Board type")
+set(PICO_BOARD pico_w CACHE STRING "Board type")
 
 # Importa o Raspberry Pi Pico SDK
 include(pico_sdk_import.cmake)
@@ -35,6 +35,7 @@ pico_sdk_init()
 add_executable(Monitor_Ruido  
     Monitor_Ruido.c
     lib/ssd1306.c   # Certifique-se de que este arquivo exista no diretório 'lib'
+    lib/wifi_config.c   # Adicione esta linha
 )
 
 # Configuração do nome e versão do programa
@@ -51,6 +52,7 @@ target_link_libraries(Monitor_Ruido
     hardware_adc 
     hardware_pwm
     hardware_i2c
+    pico_cyw43_arch_lwip_threadsafe_background  # Adicione esta linha
 )
 
 # Adiciona diretórios de inclusão para o projeto
