@@ -1,4 +1,4 @@
-<div align="center">
+![image](https://github.com/user-attachments/assets/dbe27817-5d70-4c35-89cf-4afdc7151fcd)<div align="center">
   <img src="https://github.com/LucaScripts/ComunicaoSerial/blob/main/docs/Group%20658.png?raw=true" alt="Logo do Projeto" width="50%"/>
 </div>
 
@@ -87,13 +87,13 @@ Abaixo está uma prévia da simulação serial no **Wokwi**:
 
 ![Wokwi](https://github.com/LucaScripts/ConversoresAD/blob/main/docs/diagram.json%20-%20ConversoresAD%20-%20Visual%20Studio%20Code%202025-02-14%2018-49-32.gif?raw=true)
 
-🔗[Demonstração no Wokwi]()
+🔗[Demonstração no Wokwi](https://github.com/LucaScripts/Projeto_Embarcado_Ruido/blob/main/docs/imagem_2025-02-23_214948891.png?raw=true)
 
 ---
 
 ## 🚦 **Demonstração do Projeto Video**
 
-🔗 [Demonstração no Google Drive]()
+🔗 [Demonstração no Google Drive](https://drive.google.com/file/d/1NCCcU1p1Ax-v9K4eb8CkOadhHfP7VtG6/view?usp=sharing)
 
 ---
 
@@ -101,11 +101,11 @@ Abaixo está uma prévia da simulação serial no **Wokwi**:
 
 Abaixo está uma prévia do display na **BitDogLab**:
 
-![display]()
+![display](https://github.com/LucaScripts/Projeto_Embarcado_Ruido/blob/main/docs/gif%20display.gif?raw=true)
 
 Abaixo está uma prévia do RGB na **BitDogLab**:
 
-![RGB PWM]()
+![RGB PWM](https://github.com/LucaScripts/Projeto_Embarcado_Ruido/blob/main/docs/gif%20LED%20RGB.gif?raw=true)
 
 ---
 
