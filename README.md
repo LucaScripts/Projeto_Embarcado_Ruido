@@ -116,6 +116,11 @@ Abaixo está uma prévia do RGB na **BitDogLab**:
 
 ---
 
+## Referência
+Este projeto foi baseado no repositório [BitDogLab-C](https://github.com/BitDogLab/BitDogLab-C.git).
+
+---
+
 ## 📶 **Configuração do Wi-Fi e Servidor HTTP**
 
 ### 1️⃣ **Configuração do Wi-Fi**
@@ -139,7 +144,3 @@ void start_http_server();
 
 ---
 
-
-
-## Referência
-Este projeto foi baseado no repositório [BitDogLab-C](https://github.com/BitDogLab/BitDogLab-C.git).
