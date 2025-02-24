@@ -89,7 +89,7 @@ make
 
 Abaixo está uma prévia da simulação serial no **Wokwi**:
 
-![Wokwi]()
+ <img src="https://github.com/LucaScripts/Projeto_Embarcado_Ruido/blob/main/docs/imagem_2025-02-23_214948891.png?raw=true" width="50%"/>
 
 🔗[Demonstração no Wokwi](https://wokwi.com/projects/423703650670728193)
 
