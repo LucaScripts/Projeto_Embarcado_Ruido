@@ -67,6 +67,10 @@ Este projeto monitora os níveis de ruído ambiente usando um microfone conectad
 - Exibição dos valores do ADC e dB SPL.
 - Exibição dos limiares configurados.
 
+### 4️⃣ **Configuração do Wi-Fi e Servidor HTTP**
+- Conexão à rede Wi-Fi.
+- Configuração de um servidor HTTP para controle remoto dos botões e exibição dos valores do ADC.
+
 ---
 
 ## 📥 Clonando o Repositório e Compilando o Código
@@ -112,7 +116,28 @@ Abaixo está uma prévia do RGB na **BitDogLab**:
 
 ---
 
+## 📶 **Configuração do Wi-Fi e Servidor HTTP**
+
+### 1️⃣ **Configuração do Wi-Fi**
+Para configurar o Wi-Fi, edite o arquivo `wifi_config.h` e substitua `WIFI_SSID` e `WIFI_PASS` pelo nome e senha da sua rede Wi-Fi.
+
+```c
+// filepath: /c:/Users/lucas/Downloads/Projeto_Emcarcado_Ruido/lib/wifi_config.h
+#ifndef WIFI_CONFIG_H
+#define WIFI_CONFIG_H
+
+#include "pico/cyw43_arch.h"
+#include "lwip/tcp.h"
+
+#define WIFI_SSID "NomeDaRedeWiFi"  // Substitua pelo nome da sua rede Wi-Fi
+#define WIFI_PASS "SenhaDaRedeWiFi" // Substitua pela senha da sua rede Wi-Fi
+
+void start_wifi();
+void start_http_server();
+
+#endif // WIFI_CONFIG_H
+
+---
+
 ## Referência
 Este projeto foi baseado no repositório [BitDogLab-C](https://github.com/BitDogLab/BitDogLab-C.git).
-
-
