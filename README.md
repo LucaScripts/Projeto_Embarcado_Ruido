@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/dbe27817-5d70-4c35-89cf-4afdc7151fcd)<div align="center">
+<div>
   <img src="https://github.com/LucaScripts/ComunicaoSerial/blob/main/docs/Group%20658.png?raw=true" alt="Logo do Projeto" width="50%"/>
 </div>
 
