@@ -85,9 +85,9 @@ Para baixar o código e começar a trabalhar com ele, clone o repositório e car
 
 Abaixo está uma prévia da simulação serial no **Wokwi**:
 
-![Wokwi](https://github.com/LucaScripts/ConversoresAD/blob/main/docs/diagram.json%20-%20ConversoresAD%20-%20Visual%20Studio%20Code%202025-02-14%2018-49-32.gif?raw=true)
+ <img src="https://github.com/LucaScripts/Projeto_Embarcado_Ruido/blob/main/docs/imagem_2025-02-23_214948891.png?raw=true" alt="Logo do Projeto" width="50%"/>
 
-🔗[Demonstração no Wokwi](https://github.com/LucaScripts/Projeto_Embarcado_Ruido/blob/main/docs/imagem_2025-02-23_214948891.png?raw=true)
+🔗[Demonstração no Wokwi](https://wokwi.com/projects/423703650670728193)
 
 ---
 
