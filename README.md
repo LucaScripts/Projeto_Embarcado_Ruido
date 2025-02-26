@@ -127,7 +127,7 @@ Este projeto foi baseado no repositório [BitDogLab-C](https://github.com/BitDog
 Para configurar o Wi-Fi, edite o arquivo `wifi_config.h` e substitua `WIFI_SSID` e `WIFI_PASS` pelo nome e senha da sua rede Wi-Fi.
 
 ```c
-// filepath: /c:/Users/lucas/Downloads/Projeto_Emcarcado_Ruido/lib/wifi_config.h
+// filepath: /Projeto_Emcarcado_Ruido/lib/wifi_config.h
 #ifndef WIFI_CONFIG_H
 #define WIFI_CONFIG_H
 
